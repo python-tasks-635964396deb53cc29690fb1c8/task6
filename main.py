@@ -14,6 +14,11 @@ def gen_str(_len: int) -> str:
 
 db = connect('страховая_компания.db')
 db.executescript('''
+DROP TABLE IF EXISTS клиенты;
+DROP TABLE IF EXISTS виды_страховок;
+DROP TABLE IF EXISTS договоры;
+''')
+db.executescript('''
 CREATE TABLE IF NOT EXISTS клиенты (
     айди UUID PRIMARY KEY NOT NULL,
     имя TEXT NOT NULL,
@@ -40,3 +45,10 @@ for i in range(50):
     db.execute(f'INSERT INTO виды_страховок (наименование, стоимость) VALUES ("{gen_str(6)}", "{gen_str(6)}")')
     db.execute(f'INSERT INTO договоры (айди, клиент_айди, айди_страховки) VALUES ("{uuid4()}", '
                f'"{all_uuid[randint(0, i)]}", {randint(0, i)})')
+
+
+def select_table(tb_name: str) -> list[tuple]:
+    values = []
+    for row in db.execute(f'SELECT * FROM {tb_name}'):
+        values.append(row)
+    return values
