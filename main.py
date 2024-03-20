@@ -1,3 +1,4 @@
+import json
 import sys
 from base64 import b64encode
 from random import randbytes, randint
@@ -67,3 +68,15 @@ def insert_table(tb_name: str, tb_values: str, v1: str, v2: str, _id: bool = Tru
     db.execute(
         f'INSERT INTO {tb_name} ({tb_values}) VALUES ({_ins_str(str(uuid4()), sep=True) if _id else ""}"{v1}", {v2 if v2.isdigit() else _ins_str(v2)})')
     db.commit()
+
+
+def export_table(tb_name: str) -> str:
+    return json.dumps({'items': select_table(tb_name)})
+
+
+def import_table(tb_name: str, _json):
+    __json = json.loads(_json)
+    for item in __json['items']:
+        db.execute(f'INSERT INTO {tb_name} VALUES ("{item[0]}", "{item[1]}", '
+                   f'{item[2] if item[2].isdigit() else _ins_str(item[2])})')
+        db.commit()
