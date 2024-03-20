@@ -1,3 +1,4 @@
+import sys
 from base64 import b64encode
 from random import randbytes, randint
 from sqlite3 import connect
@@ -6,18 +7,18 @@ from uuid import uuid4
 all_uuid = []
 
 
+def gen_client_uuid() -> str:
+    u = uuid4()
+    all_uuid.append(u)
+    return str(u)
+
+
 def gen_str(_len: int) -> str:
     c_uuid = b64encode(randbytes(_len)).decode()
-    all_uuid.append(c_uuid)
     return c_uuid
 
 
 db = connect('страховая_компания.db')
-db.executescript('''
-DROP TABLE IF EXISTS клиенты;
-DROP TABLE IF EXISTS виды_страховок;
-DROP TABLE IF EXISTS договоры;
-''')
 db.executescript('''
 CREATE TABLE IF NOT EXISTS клиенты (
     айди UUID PRIMARY KEY NOT NULL,
@@ -40,11 +41,14 @@ CREATE TABLE IF NOT EXISTS договоры (
 );
 ''')
 
-for i in range(50):
-    db.execute(f'INSERT INTO клиенты (айди, имя, фамилия) VALUES ("{uuid4()}", "{gen_str(6)}", "{gen_str(6)}")')
-    db.execute(f'INSERT INTO виды_страховок (наименование, стоимость) VALUES ("{gen_str(6)}", "{gen_str(6)}")')
-    db.execute(f'INSERT INTO договоры (айди, клиент_айди, айди_страховки) VALUES ("{uuid4()}", '
-               f'"{all_uuid[randint(0, i)]}", {randint(0, i)})')
+
+def insert_random_20():
+    for i in range(20):
+        db.execute(f'INSERT INTO клиенты (айди, имя, фамилия) VALUES ("{gen_client_uuid()}", "{gen_str(6)}", "{gen_str(6)}")')
+        db.execute(f'INSERT INTO виды_страховок (наименование, стоимость) VALUES ("{gen_str(6)}", "{gen_str(6)}")')
+        db.execute(f'INSERT INTO договоры (айди, клиент_айди, айди_страховки) VALUES ("{uuid4()}", '
+                    f'"{all_uuid[randint(0, i)]}", {randint(1, i+1)})')
+        db.commit()
 
 
 def select_table(tb_name: str) -> list[tuple]:
@@ -52,3 +56,14 @@ def select_table(tb_name: str) -> list[tuple]:
     for row in db.execute(f'SELECT * FROM {tb_name}'):
         values.append(row)
     return values
+
+
+def _ins_str(s: str | int = "", sep: bool = False) -> str:
+    return f'"{s}"{"," if sep else ""}'
+
+
+def insert_table(tb_name: str, tb_values: str, v1: str, v2: str, _id: bool = True):
+    print(f'INSERT INTO {tb_name} ({tb_values}) VALUES ({_ins_str(str(uuid4()), sep=True) if _id else ""}"{v1}", {v2 if v2.isdigit() else _ins_str(v2)})', file=sys.stderr)
+    db.execute(
+        f'INSERT INTO {tb_name} ({tb_values}) VALUES ({_ins_str(str(uuid4()), sep=True) if _id else ""}"{v1}", {v2 if v2.isdigit() else _ins_str(v2)})')
+    db.commit()
