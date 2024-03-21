@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS договоры (
 def insert_random_20():
     for i in range(20):
         db.execute(f'INSERT INTO клиенты (айди, имя, фамилия) VALUES ("{gen_client_uuid()}", "{gen_str(6)}", "{gen_str(6)}")')
-        db.execute(f'INSERT INTO виды_страховок (наименование, стоимость) VALUES ("{gen_str(6)}", "{gen_str(6)}")')
+        db.execute(f'INSERT INTO виды_страховок (наименование, стоимость) VALUES ("{gen_str(6)}", "{randint(100, 500)}")')
         db.execute(f'INSERT INTO договоры (айди, клиент_айди, айди_страховки) VALUES ("{uuid4()}", '
                     f'"{all_uuid[randint(0, i)]}", {randint(1, i+1)})')
         db.commit()
